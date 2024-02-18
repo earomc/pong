@@ -8,9 +8,9 @@ use std::env;
 use std::path::PathBuf;
 
 use ggez::{
-    *, conf::WindowMode, event::{self, EventHandler}, glam::Vec2, graphics::{Canvas, Color}, input::keyboard::KeyInput, mint::Point2, winit::event::VirtualKeyCode
+    audio::{SoundSource, Source}, conf::{WindowMode, WindowSetup}, event::{self, EventHandler}, glam::Vec2, graphics::{Canvas, Color}, input::keyboard::KeyInput, mint::Point2, winit::event::VirtualKeyCode, *
 };
-use ggez::graphics::{FontData};
+use ggez::graphics::FontData;
 use crate::middle_line::MiddleLine;
 use crate::player::Player;
 use crate::scores_display::ScoresDisplay;
@@ -18,12 +18,10 @@ use crate::scores_display::ScoresDisplay;
 const SCREEN_HEIGHT: f32 = 720.0;
 const SCREEN_WIDTH: f32 = 1280.0;
 
-const SLIDER_HEIGHT: f32 = 100.0;
+const SLIDER_HEIGHT: f32 = 150.0;
 const SLIDER_WIDTH: f32 = 20.0;
 
 const X_MARGIN : f32 = 20.0;
-const BALL_MAGNITUDE : f32 = 14.0;
-
 
 const FONT_NAME: &str = "PressStart";
 
@@ -31,7 +29,6 @@ fn main() -> GameResult {
     env::set_var("RUST_BACKTRACE", "1");
 
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        println!("BOOG {}", &manifest_dir);
         let mut path = PathBuf::from(manifest_dir);
         path.push("resources");
         path
@@ -39,17 +36,48 @@ fn main() -> GameResult {
         PathBuf::from("./resources")
     };
 
+    let mut fonts_dir = PathBuf::from(&resource_dir);
+    fonts_dir.push("fonts");
+
+    let mut sounds_dir = PathBuf::from(&resource_dir);
+    sounds_dir.push("sounds");
+    
+    let mut img_dir = PathBuf::from(&resource_dir);
+    img_dir.push("img");
 
     let cb = ContextBuilder::new("pong_ggez", "earomc").window_mode(WindowMode {
         height: 720.0,
         width: 1280.0,
         ..Default::default()
     });
-    let (mut ctx, event_loop) = cb.add_resource_path(resource_dir).build()?;
+    let (mut ctx, event_loop) = cb
+        .add_resource_path(resource_dir)
+        .add_resource_path(fonts_dir)
+        .add_resource_path(sounds_dir)
+        .add_resource_path(img_dir)
+        .window_setup(WindowSetup::default().title("PONG | Made by earomc").icon("/icon.png"))
+        .build()?;
     let font_data = FontData::from_path(&ctx, "/PressStart.ttf")?;
     ctx.gfx.add_font(FONT_NAME, font_data);
     let state = PongState::new(&mut ctx)?;
     event::run(ctx, event_loop, state)
+}
+
+struct Sounds {
+    click_high: Source,
+    click_low: Source,
+    score: Source
+}
+
+impl Sounds {
+    fn new(ctx: &Context) -> GameResult<Sounds> {
+        let sounds = Sounds {
+            click_high: Source::new(ctx, "/click_high.wav")?,
+            click_low: Source::new(ctx, "/click_low.wav")?,
+            score: Source::new(ctx, "/score.wav")?
+        };
+        Ok(sounds)
+    }
 }
 
 struct PongState {
@@ -57,19 +85,20 @@ struct PongState {
     ball: Ball,
     middle_line: MiddleLine,
     button_state: ButtonState,
-    scores_display: ScoresDisplay
+    scores_display: ScoresDisplay,
+    sounds: Sounds
 }
 enum Side {
     Left,
     Right,
 }
 
-fn vec2_to_point(value: Vec2) -> Point2<f32> {
+pub fn vec2_to_point(value: Vec2) -> Point2<f32> {
     Point2 {x: value.x, y: value.y}
 }
 
 
-fn point_to_vec2(value: Point2<f32>) -> Vec2 {
+pub fn point_to_vec2(value: Point2<f32>) -> Vec2 {
     Vec2::new(value.x, value.y)
 }
 
@@ -80,46 +109,29 @@ fn center_pos() -> Vec2 {
 impl PongState {
     fn new(ctx: &mut Context) -> GameResult<PongState> {
         let players = (
-            Player::new(Side::Left, ctx, SLIDER_WIDTH, SLIDER_HEIGHT),
-            Player::new(Side::Right, ctx, SLIDER_WIDTH, SLIDER_HEIGHT),
+            Player::new(Side::Left, ctx),
+            Player::new(Side::Right, ctx),
         );
-        let mut scores_display = ScoresDisplay::new(&players);
+        let scores_display = ScoresDisplay::new(&players);
         let state = PongState {
             players,
             button_state: ButtonState::default(),
             scores_display,
             ball: Ball::new(ctx),
             middle_line: MiddleLine::new(ctx),
+            sounds: Sounds::new(ctx)?
         };
         Ok(state)
-    }
-
-    fn print_score_self(&self) {
-        Self::print_score(&self.players);
-    }
-
-    fn print_score(players: &(Player, Player)) {
-        println!("Player 0: {} Player 1: {}", players.0.score, players.1.score);
     }
 }
 
 
+#[derive(Default)]
 struct ButtonState {
     w_pressed: bool,
     s_pressed: bool,
     up_pressed: bool,
     down_pressed: bool,
-}
-
-impl Default for ButtonState {
-    fn default() -> Self {
-        ButtonState {
-            w_pressed: false,
-            s_pressed: false,
-            up_pressed: false,
-            down_pressed: false,
-        }
-    }
 }
 
 impl EventHandler<GameError> for PongState {
@@ -136,25 +148,25 @@ impl EventHandler<GameError> for PongState {
             self.players.1.move_y(step)
         }
         self.ball.update_pos();
-        //self.ball.set_position(point_to_vec2(ctx.mouse.position()));
+
         match self.ball.check_collision(&mut self.players) {
             CollisionResult::PlayerScores => {
                 self.scores_display.update_score(&self.players);
+                self.sounds.score.play(ctx)?;
             }
-            CollisionResult::CollideSlider { .. } => {}
+            CollisionResult::CollideSlider(side) => {
+                match side {
+                    Side::Left => self.sounds.click_high.play(ctx)?,
+                    Side::Right => self.sounds.click_low.play(ctx)?
+                }
+            }
             CollisionResult::CollideTopBottom => {}
             CollisionResult::None => {}
         };
-        /*while ctx.time.check_update_time(5) {
-            dbg!(self.ball.bounds);
-            dbg!(self.players.0.bounds);
-            dbg!(self.players.1.bounds);
-        }*/
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        // draw players:
         let mut canvas = Canvas::from_frame(ctx, Color::BLACK);
 
         self.players.0.draw(&mut canvas);
@@ -165,8 +177,6 @@ impl EventHandler<GameError> for PongState {
 
         self.scores_display.draw(&mut canvas);
 
-        //println!("Player1 y: {:?} Player2 y: {:?}", self.players.0.pos.y, self.players.1.pos.y);
-        //println!("Player1: {:?} Player2: {:?}", self.players.0.draw_param, self.players.1.draw_param);
 
         canvas.finish(ctx)?;
         Ok(())
@@ -174,7 +184,7 @@ impl EventHandler<GameError> for PongState {
 
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         input: KeyInput,
         repeated: bool,
     ) -> GameResult {
