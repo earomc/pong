@@ -193,9 +193,7 @@ impl EventHandler<GameError> for PongState {
         }
         if let Some(keycode) = input.keycode {
             match keycode {
-                VirtualKeyCode::Space => {
-                    self.ball.reset_pos();
-                }
+                //VirtualKeyCode::Space => {self.ball.reset_pos();}
                 VirtualKeyCode::W => {
                     //println!("W down");
                     self.button_state.w_pressed = true;
