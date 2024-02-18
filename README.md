@@ -12,9 +12,9 @@ Little warning! The sounds can get a bit loud in the beginning if you have your 
 Best is to have a friend who can control the second paddle. But it can be fun playing alone too :')
 
 ### Player 1: 
-W = Up
+W = Up  
 A = Down
 
 ### Player 2:
-Arrow Up = Up
+Arrow Up = Up  
 Arrow Down = Down
