@@ -1,9 +1,9 @@
-use std::ops::{Div, Sub};
+
 
 use ggez::Context;
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, Color, DrawMode, DrawParam, Mesh, Rect};
-use crate::{center_pos, point_to_vec2, Side, SCREEN_HEIGHT, SCREEN_WIDTH, SLIDER_WIDTH, X_MARGIN};
+use crate::{center_pos, Side, SCREEN_HEIGHT, SCREEN_WIDTH, SLIDER_WIDTH, X_MARGIN};
 use crate::player::Player;
 
 const BALL_MAGNITUDE : f32 = 20.0;
