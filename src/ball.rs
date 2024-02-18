@@ -1,5 +1,3 @@
-
-
 use ggez::Context;
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, Color, DrawMode, DrawParam, Mesh, Rect};
@@ -33,8 +31,6 @@ impl Ball {
         vel.y /= 128.0;
         let mut vel = if rand::random::<bool>() { -vel.normalize() } else { vel.normalize() };
         vel = vel.normalize() * BALL_MAGNITUDE;
-        //dbg!(vel.length());
-        //dbg!(vel)
         vel
     }
 
@@ -67,9 +63,9 @@ impl Ball {
         if player_0_bounds.overlaps(&self.bounds) {
             let x = SLIDER_WIDTH + X_MARGIN;
             self.bounds.x = x;
-            self.pos.x = x;            
+            self.pos.x = x;      
+
             self.vel = self.calc_new_vel(&players.0);
-            //println!("OVERLAP WITH PLAYER 0!!!");
             return CollisionResult::CollideSlider(Side::Left);
         }
         if player_1_bounds.overlaps(&self.bounds) {
@@ -77,9 +73,7 @@ impl Ball {
             self.bounds.x = x;
             self.pos.x = x;
 
-            self.vel = self.calc_new_vel(&players.1);
-            //println!("OVERLAP WITH PLAYER 1!!!");
-            
+            self.vel = self.calc_new_vel(&players.1);            
             return CollisionResult::CollideSlider(Side::Right);
         }
         if self.pos.x > SCREEN_WIDTH - SLIDER_WIDTH {
@@ -95,8 +89,6 @@ impl Ball {
     }
 
     fn calc_new_vel(&mut self, player: &Player) -> Vec2 {
-        
-       
         let diff = self.pos.y - player.bounds.top();
 
         let angle = match player.side {
@@ -105,9 +97,6 @@ impl Ball {
         }; 
         let vel = Vec2::new(angle.cos(), angle.sin());
         vel * BALL_MAGNITUDE
-        //let ball_center = point_to_vec2(self.bounds.center());
-        //let player_center = point_to_vec2(player.bounds.center());
-        //dbg!(ball_center.sub(player_center).normalize() * BALL_MAGNITUDE)
     }
 
     fn map_range(from_range: (f32, f32), to_range: (f32, f32), s: f32) -> f32 {

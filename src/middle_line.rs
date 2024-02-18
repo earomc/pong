@@ -1,13 +1,13 @@
-use ggez::Context;
+use crate::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, Color, DrawMode, DrawParam, Mesh, Rect};
-use crate::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use ggez::Context;
 
-const LINE_WIDTH : f32 = 5.0;
+const LINE_WIDTH: f32 = 5.0;
 
 pub struct MiddleLine {
     mesh: Mesh,
-    pos: Vec2
+    pos: Vec2,
 }
 
 impl MiddleLine {
@@ -16,7 +16,7 @@ impl MiddleLine {
         let mesh = Mesh::new_rectangle(ctx, DrawMode::fill(), rect, Color::WHITE).unwrap();
         MiddleLine {
             mesh,
-            pos: Vec2::new((SCREEN_WIDTH - LINE_WIDTH) / 2.0, 0.0)
+            pos: Vec2::new((SCREEN_WIDTH - LINE_WIDTH) / 2.0, 0.0),
         }
     }
     pub fn draw(&self, canvas: &mut Canvas) {

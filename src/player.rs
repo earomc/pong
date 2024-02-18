@@ -1,7 +1,7 @@
-use ggez::Context;
+use crate::{Side, SCREEN_HEIGHT, SCREEN_WIDTH, SLIDER_HEIGHT, SLIDER_WIDTH, X_MARGIN};
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, Color, DrawMode, DrawParam, Mesh, Rect};
-use crate::{Side, SCREEN_HEIGHT, SCREEN_WIDTH, SLIDER_HEIGHT, SLIDER_WIDTH, X_MARGIN};
+use ggez::Context;
 
 pub struct Player {
     pos: Vec2,
@@ -9,14 +9,17 @@ pub struct Player {
     pub score: i32,
     pub side: Side,
     mesh: Mesh,
-    draw_param: DrawParam
+    draw_param: DrawParam,
 }
 
 impl Player {
     pub fn new(side: Side, ctx: &Context) -> Self {
         let pos = match side {
             Side::Left => Vec2::new(X_MARGIN, (SCREEN_HEIGHT - SLIDER_HEIGHT) / 2.0),
-            Side::Right => Vec2::new(SCREEN_WIDTH - X_MARGIN - SLIDER_WIDTH, (SCREEN_HEIGHT - SLIDER_HEIGHT) / 2.0)
+            Side::Right => Vec2::new(
+                SCREEN_WIDTH - X_MARGIN - SLIDER_WIDTH,
+                (SCREEN_HEIGHT - SLIDER_HEIGHT) / 2.0,
+            ),
         };
 
         let draw_param: DrawParam = DrawParam::default().dest(pos);
@@ -29,8 +32,7 @@ impl Player {
             score: 0,
             side,
             bounds,
-            mesh: Mesh::new_rectangle(ctx, DrawMode::fill(), mesh_bounds, Color::WHITE)
-                .unwrap(),
+            mesh: Mesh::new_rectangle(ctx, DrawMode::fill(), mesh_bounds, Color::WHITE).unwrap(),
             draw_param,
         }
     }

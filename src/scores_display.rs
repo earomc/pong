@@ -1,13 +1,13 @@
+use crate::player::Player;
+use crate::{FONT_NAME, SCREEN_WIDTH};
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, Text};
-use crate::{FONT_NAME, SCREEN_WIDTH};
-use crate::player::Player;
 
 pub struct ScoresDisplay {
     pos0: Vec2,
     pos1: Vec2,
     text0: Text,
-    text1: Text
+    text1: Text,
 }
 
 const FONT_SIZE: f32 = 60.;
@@ -20,17 +20,22 @@ impl ScoresDisplay {
             pos0: Self::create_pos0(score0),
             pos1: Vec2::new(SCREEN_WIDTH / 2.0 + 20.0, 10.0),
             text0: Self::create_score_text(score0.to_string()),
-            text1: Self::create_score_text(score1.to_string())
+            text1: Self::create_score_text(score1.to_string()),
         }
     }
 
     fn calc_pos0_offset(score: i32) -> f32 {
-        if score == 0 { return 0.0; }
+        if score == 0 {
+            return 0.0;
+        }
         (((score as f32).log10() + 1.0).floor() - 1.0) * FONT_SIZE
     }
 
     fn create_pos0(score0: i32) -> Vec2 {
-        Vec2::new(SCREEN_WIDTH / 2.0 - 20.0 - FONT_SIZE - Self::calc_pos0_offset(score0), 10.0)
+        Vec2::new(
+            SCREEN_WIDTH / 2.0 - 20.0 - FONT_SIZE - Self::calc_pos0_offset(score0),
+            10.0,
+        )
     }
 
     pub fn draw(&self, canvas: &mut Canvas) {
@@ -43,6 +48,7 @@ impl ScoresDisplay {
         score_text.set_font(FONT_NAME).set_scale(FONT_SIZE);
         score_text
     }
+
     pub fn update_score(&mut self, players: &(Player, Player)) {
         self.text0 = Self::create_score_text(players.0.score.to_string());
         self.text1 = Self::create_score_text(players.1.score.to_string());

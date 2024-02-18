@@ -1,20 +1,28 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod player;
 mod ball;
-mod scores_display;
 mod middle_line;
+mod player;
+mod scores_display;
 
 use crate::ball::{Ball, CollisionResult};
 use std::env;
 use std::path::PathBuf;
 
-use ggez::{
-    audio::{SoundSource, Source}, conf::{WindowMode, WindowSetup}, event::{self, EventHandler}, glam::Vec2, graphics::{Canvas, Color}, input::keyboard::KeyInput, mint::Point2, winit::event::VirtualKeyCode, *
-};
-use ggez::graphics::FontData;
 use crate::middle_line::MiddleLine;
 use crate::player::Player;
 use crate::scores_display::ScoresDisplay;
+use ggez::graphics::FontData;
+use ggez::{
+    audio::{SoundSource, Source},
+    conf::{WindowMode, WindowSetup},
+    event::{self, EventHandler},
+    glam::Vec2,
+    graphics::{Canvas, Color},
+    input::keyboard::KeyInput,
+    mint::Point2,
+    winit::event::VirtualKeyCode,
+    *,
+};
 
 const SCREEN_HEIGHT: f32 = 720.0;
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -22,7 +30,7 @@ const SCREEN_WIDTH: f32 = 1280.0;
 const SLIDER_HEIGHT: f32 = 150.0;
 const SLIDER_WIDTH: f32 = 20.0;
 
-const X_MARGIN : f32 = 20.0;
+const X_MARGIN: f32 = 20.0;
 
 const FONT_NAME: &str = "PressStart";
 
@@ -42,7 +50,7 @@ fn main() -> GameResult {
 
     let mut sounds_dir = PathBuf::from(&resource_dir);
     sounds_dir.push("sounds");
-    
+
     let mut img_dir = PathBuf::from(&resource_dir);
     img_dir.push("img");
 
@@ -56,7 +64,11 @@ fn main() -> GameResult {
         .add_resource_path(fonts_dir)
         .add_resource_path(sounds_dir)
         .add_resource_path(img_dir)
-        .window_setup(WindowSetup::default().title("PONG | Made by earomc").icon("/icon.png"))
+        .window_setup(
+            WindowSetup::default()
+                .title("PONG | Made by earomc")
+                .icon("/icon.png"),
+        )
         .build()?;
     let font_data = FontData::from_path(&ctx, "/PressStart.ttf")?;
     ctx.gfx.add_font(FONT_NAME, font_data);
@@ -67,7 +79,7 @@ fn main() -> GameResult {
 struct Sounds {
     click_high: Source,
     click_low: Source,
-    score: Source
+    score: Source,
 }
 
 impl Sounds {
@@ -75,7 +87,7 @@ impl Sounds {
         let sounds = Sounds {
             click_high: Source::new(ctx, "/click_high.wav")?,
             click_low: Source::new(ctx, "/click_low.wav")?,
-            score: Source::new(ctx, "/score.wav")?
+            score: Source::new(ctx, "/score.wav")?,
         };
         Ok(sounds)
     }
@@ -87,7 +99,7 @@ struct PongState {
     middle_line: MiddleLine,
     button_state: ButtonState,
     scores_display: ScoresDisplay,
-    sounds: Sounds
+    sounds: Sounds,
 }
 enum Side {
     Left,
@@ -95,9 +107,11 @@ enum Side {
 }
 
 pub fn vec2_to_point(value: Vec2) -> Point2<f32> {
-    Point2 {x: value.x, y: value.y}
+    Point2 {
+        x: value.x,
+        y: value.y,
+    }
 }
-
 
 pub fn point_to_vec2(value: Point2<f32>) -> Vec2 {
     Vec2::new(value.x, value.y)
@@ -109,10 +123,7 @@ fn center_pos() -> Vec2 {
 
 impl PongState {
     fn new(ctx: &mut Context) -> GameResult<PongState> {
-        let players = (
-            Player::new(Side::Left, ctx),
-            Player::new(Side::Right, ctx),
-        );
+        let players = (Player::new(Side::Left, ctx), Player::new(Side::Right, ctx));
         let scores_display = ScoresDisplay::new(&players);
         let state = PongState {
             players,
@@ -120,12 +131,11 @@ impl PongState {
             scores_display,
             ball: Ball::new(ctx),
             middle_line: MiddleLine::new(ctx),
-            sounds: Sounds::new(ctx)?
+            sounds: Sounds::new(ctx)?,
         };
         Ok(state)
     }
 }
-
 
 #[derive(Default)]
 struct ButtonState {
@@ -155,12 +165,10 @@ impl EventHandler<GameError> for PongState {
                 self.scores_display.update_score(&self.players);
                 self.sounds.score.play(ctx)?;
             }
-            CollisionResult::CollideSlider(side) => {
-                match side {
-                    Side::Left => self.sounds.click_high.play(ctx)?,
-                    Side::Right => self.sounds.click_low.play(ctx)?
-                }
-            }
+            CollisionResult::CollideSlider(side) => match side {
+                Side::Left => self.sounds.click_high.play(ctx)?,
+                Side::Right => self.sounds.click_low.play(ctx)?,
+            },
             CollisionResult::CollideTopBottom => {}
             CollisionResult::None => {}
         };
@@ -178,7 +186,6 @@ impl EventHandler<GameError> for PongState {
 
         self.scores_display.draw(&mut canvas);
 
-
         canvas.finish(ctx)?;
         Ok(())
     }
@@ -194,21 +201,16 @@ impl EventHandler<GameError> for PongState {
         }
         if let Some(keycode) = input.keycode {
             match keycode {
-                //VirtualKeyCode::Space => {self.ball.reset_pos();}
                 VirtualKeyCode::W => {
-                    //println!("W down");
                     self.button_state.w_pressed = true;
                 }
                 VirtualKeyCode::S => {
-                    //println!("S down");
                     self.button_state.s_pressed = true;
                 }
                 VirtualKeyCode::Up => {
-                    //println!("Up down");
                     self.button_state.up_pressed = true;
                 }
                 VirtualKeyCode::Down => {
-                    //println!("Down down");
                     self.button_state.down_pressed = true;
                 }
                 _ => (),
@@ -221,19 +223,15 @@ impl EventHandler<GameError> for PongState {
         if let Some(keycode) = input.keycode {
             match keycode {
                 VirtualKeyCode::W => {
-                    //println!("W up");
                     self.button_state.w_pressed = false;
                 }
                 VirtualKeyCode::S => {
-                    //println!("S up");
                     self.button_state.s_pressed = false;
                 }
                 VirtualKeyCode::Up => {
-                    //println!("Up up");
                     self.button_state.up_pressed = false;
                 }
                 VirtualKeyCode::Down => {
-                    //println!("Down up");
                     self.button_state.down_pressed = false;
                 }
                 _ => (),
