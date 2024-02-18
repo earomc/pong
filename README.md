@@ -1,6 +1,6 @@
 # Pong
 A simple version of Pong written in Rust
-My first game written in a non-block programming language! :D
+My first game written in a non-block programming language (like Scratch)! :D
 
 ![image](https://github.com/earomc/pong/assets/36933273/99c567a0-feb5-4aee-a91d-53d905e2640a)
 
