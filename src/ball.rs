@@ -33,8 +33,9 @@ impl Ball {
         vel.y /= 128.0;
         let mut vel = if rand::random::<bool>() { -vel.normalize() } else { vel.normalize() };
         vel = vel.normalize() * BALL_MAGNITUDE;
-        dbg!(vel.length());
-        dbg!(vel)
+        //dbg!(vel.length());
+        //dbg!(vel)
+        vel
     }
 
     pub(crate) fn update_pos(&mut self) {
@@ -68,7 +69,7 @@ impl Ball {
             self.bounds.x = x;
             self.pos.x = x;            
             self.vel = self.calc_new_vel(&players.0);
-            println!("OVERLAP WITH PLAYER 0!!!");
+            //println!("OVERLAP WITH PLAYER 0!!!");
             return CollisionResult::CollideSlider(Side::Left);
         }
         if player_1_bounds.overlaps(&self.bounds) {
@@ -77,7 +78,7 @@ impl Ball {
             self.pos.x = x;
 
             self.vel = self.calc_new_vel(&players.1);
-            println!("OVERLAP WITH PLAYER 1!!!");
+            //println!("OVERLAP WITH PLAYER 1!!!");
             
             return CollisionResult::CollideSlider(Side::Right);
         }
