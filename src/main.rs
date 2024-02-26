@@ -54,7 +54,7 @@ fn main() -> GameResult {
     let mut img_dir = PathBuf::from(&resource_dir);
     img_dir.push("img");
 
-    let cb = ContextBuilder::new("pong_ggez", "earomc").window_mode(WindowMode {
+    let cb = ContextBuilder::new("pong", "earomc").window_mode(WindowMode {
         height: 720.0,
         width: 1280.0,
         ..Default::default()
@@ -117,10 +117,6 @@ pub fn point_to_vec2(value: Point2<f32>) -> Vec2 {
     Vec2::new(value.x, value.y)
 }
 
-fn center_pos() -> Vec2 {
-    Vec2::new(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0)
-}
-
 impl PongState {
     fn new(ctx: &mut Context) -> GameResult<PongState> {
         let players = (Player::new(Side::Left, ctx), Player::new(Side::Right, ctx));
@@ -147,7 +143,8 @@ struct ButtonState {
 
 impl EventHandler<GameError> for PongState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let step = 20.0;
+        let pixels_per_second = 1200.0;
+        let step = pixels_per_second * ctx.time.average_delta().as_secs_f32();
         if self.button_state.w_pressed {
             self.players.0.move_y(-step)
         } else if self.button_state.s_pressed {
@@ -158,9 +155,7 @@ impl EventHandler<GameError> for PongState {
         } else if self.button_state.down_pressed {
             self.players.1.move_y(step)
         }
-        self.ball.update_pos();
-
-        match self.ball.check_collision(&mut self.players) {
+        match self.ball.update(ctx, &mut self.players) {
             CollisionResult::PlayerScores => {
                 self.scores_display.update_score(&self.players);
                 self.sounds.score.play(ctx)?;
